@@ -104,12 +104,24 @@ def logout():
 @login_required
 def dashboard():
     """Tableau de bord principal (à personnaliser)"""
+    import time
     noro_unified_url = os.environ.get("NORO_UNIFIED_URL", "http://127.0.0.1:5002/")
+    email = session.get("user_email")
+    
+    # Générer le token SSO sécurisé (valide 5 min)
+    sso_secret = os.environ.get("NORO_SSO_SECRET", "noro-sso-shared-secret-key-2026")
+    timestamp = str(int(time.time()))
+    token = hashlib.sha256((email + timestamp + sso_secret).encode()).hexdigest()
+    
+    # Construire le lien avec token
+    base_url = noro_unified_url if noro_unified_url.endswith("/") else noro_unified_url + "/"
+    sso_link = f"{base_url}login-sso?email={email}&timestamp={timestamp}&token={token}"
+    
     return render_template("dashboard.html",
         nom=session.get("user_nom", "Utilisateur"),
         role=session.get("user_role", "user"),
-        email=session.get("user_email"),
-        noro_unified_url=noro_unified_url
+        email=email,
+        noro_unified_url=sso_link
     )
 
 
