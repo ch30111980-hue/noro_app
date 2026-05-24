@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NORO — Administration Digitale IA</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --noir: #0a0c0e;
+    --noir2: #111418;
+    --noir3: #181d22;
+    --orange: #f97316;
+    --orange-dark: #c2530a;
+    --orange-glow: rgba(249,115,22,0.18);
+    --olive: #7a9a3c;
+    --olive-light: #a3c44a;
+    --olive-glow: rgba(122,154,60,0.15);
+    --bleu: #0ea5e9;
+    --bleu-dark: #0369a1;
+    --bleu-glow: rgba(14,165,233,0.18);
+    --blanc: #f1f5f9;
+    --gris: #64748b;
+  }
+
+  html, body {
+    width: 100%; min-height: 100vh;
+    background: var(--noir);
+    font-family: 'Rajdhani', sans-serif;
+    color: var(--blanc);
+    overflow-x: hidden;
+  }
+
+  /* ── ANIMATED HEX GRID BACKGROUND ── */
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      repeating-linear-gradient(60deg, rgba(122,154,60,0.04) 0, rgba(122,154,60,0.04) 1px, transparent 0, transparent 50%),
+      repeating-linear-gradient(120deg, rgba(249,115,22,0.04) 0, rgba(249,115,22,0.04) 1px, transparent 0, transparent 50%),
+      repeating-linear-gradient(0deg, rgba(14,165,233,0.03) 0, rgba(14,165,233,0.03) 1px, transparent 0, transparent 50%);
+    background-size: 60px 60px;
+    animation: gridPulse 8s ease-in-out infinite;
+  }
+
+  .bg-orbs {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  }
+  .orb {
+    position: absolute; border-radius: 50%; filter: blur(80px);
+  }
+  .orb1 { width: 400px; height: 400px; top: -10%; left: -5%; background: radial-gradient(circle, var(--orange-glow), transparent); animation: orbFloat 12s ease-in-out infinite; }
+  .orb2 { width: 350px; height: 350px; bottom: 10%; right: -5%; background: radial-gradient(circle, var(--olive-glow), transparent); animation: orbFloat 15s ease-in-out infinite reverse; }
+  .orb3 { width: 300px; height: 300px; top: 40%; left: 60%; background: radial-gradient(circle, var(--bleu-glow), transparent); animation: orbFloat 10s ease-in-out infinite 3s; }
+
+  @keyframes gridPulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  @keyframes orbFloat { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(20px,-30px) scale(1.1)} }
+
+  /* ── LAYOUT ── */
+  .page {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+  }
+
+  .main-area {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center;
+    padding: 3rem 1.5rem;
+    gap: 5rem;
+  }
+
+  /* ── LOGO SECTION ── */
+  .logo-section {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 1.5rem;
+  }
+
+  .logo-ring {
+    position: relative; width: 220px; height: 220px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Outer rotating hex ring */
+  .hex-ring-outer {
+    position: absolute; inset: 0;
+    animation: spinSlow 20s linear infinite;
+  }
+  .hex-ring-mid {
+    position: absolute; inset: 20px;
+    animation: spinSlow 14s linear infinite reverse;
+  }
+  .hex-ring-inner {
+    position: absolute; inset: 40px;
+    animation: spinSlow 8s linear infinite;
+  }
+
+  @keyframes spinSlow { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+  /* Central hexagon */
+  .hex-center {
+    position: relative; width: 100px; height: 115px;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10;
+    filter: drop-shadow(0 0 20px var(--bleu));
+    animation: hexPulse 3s ease-in-out infinite;
+  }
+  @keyframes hexPulse {
+    0%,100% { filter: drop-shadow(0 0 20px var(--bleu)); transform: scale(1); }
+    50% { filter: drop-shadow(0 0 40px var(--orange)) drop-shadow(0 0 60px var(--bleu)); transform: scale(1.05); }
+  }
+
+  .hex-center svg { width: 100%; height: 100%; }
+
+  /* Orbiting satellite hexagons */
+  .orbit-container {
+    position: absolute; inset: 0;
+    animation: spinSlow 18s linear infinite;
+  }
+  .sat-hex {
+    position: absolute;
+    width: 42px; height: 42px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .sat-hex svg { width: 100%; height: 100%; }
+  .sat-hex:nth-child(1) { top: 0; left: 50%; transform: translate(-50%, 0); }
+  .sat-hex:nth-child(2) { top: 25%; right: 3%; transform: translate(0, -50%); }
+  .sat-hex:nth-child(3) { bottom: 25%; right: 3%; transform: translate(0, 50%); }
+  .sat-hex:nth-child(4) { bottom: 0; left: 50%; transform: translate(-50%, 0); }
+  .sat-hex:nth-child(5) { bottom: 25%; left: 3%; transform: translate(0, 50%); }
+  .sat-hex:nth-child(6) { top: 25%; left: 3%; transform: translate(0, -50%); }
+
+  /* Counter-spin so icons stay upright */
+  .sat-hex svg {
+    animation: spinSlow 18s linear infinite reverse;
+  }
+
+  /* NORO wordmark */
+  .brand-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 3.5rem;
+    font-weight: 900;
+    letter-spacing: 0.25em;
+    background: linear-gradient(135deg, var(--orange) 0%, var(--blanc) 45%, var(--bleu) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    line-height: 1;
+    filter: drop-shadow(0 0 30px rgba(249,115,22,0.4));
+  }
+
+  .brand-sep {
+    width: 180px; height: 2px;
+    background: linear-gradient(90deg, var(--orange), var(--olive), var(--bleu));
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+  .brand-sep::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, #fff, transparent);
+    animation: sepShine 3s ease-in-out infinite;
+  }
+  @keyframes sepShine { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+
+  .brand-tagline {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.35em;
+    color: var(--gris);
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  /* ── STATS BADGES (below logo) ── */
+  .badge-row {
+    display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center;
+    margin-top: 0.5rem;
+  }
+  .badge {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1px solid;
+    backdrop-filter: blur(4px);
+  }
+  .badge-orange { background: rgba(249,115,22,0.1); border-color: rgba(249,115,22,0.4); color: var(--orange); }
+  .badge-olive  { background: rgba(122,154,60,0.1);  border-color: rgba(122,154,60,0.4);  color: var(--olive-light); }
+  .badge-blue   { background: rgba(14,165,233,0.1);  border-color: rgba(14,165,233,0.4);  color: var(--bleu); }
+  .badge-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .badge-orange .badge-dot { background: var(--orange); }
+  .badge-olive  .badge-dot { background: var(--olive-light); }
+  .badge-blue   .badge-dot { background: var(--bleu); }
+
+  /* ── DIVIDER ── */
+  .divider-vert {
+    width: 1px; height: 380px;
+    background: linear-gradient(to bottom, transparent, var(--orange) 25%, var(--olive) 75%, transparent);
+    opacity: 0.4;
+    flex-shrink: 0;
+  }
+
+  /* ── LOGIN CARD ── */
+  .login-card {
+    width: 100%; max-width: 400px;
+    background: rgba(17,20,24,0.85);
+    border: 1px solid rgba(249,115,22,0.2);
+    border-radius: 12px;
+    padding: 2.5rem;
+    backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Glowing corner accent */
+  .login-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle at top left, rgba(249,115,22,0.15), transparent);
+    pointer-events: none;
+  }
+  .login-card::after {
+    content: '';
+    position: absolute; bottom: 0; right: 0;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle at bottom right, rgba(14,165,233,0.15), transparent);
+    pointer-events: none;
+  }
+
+  /* Top bar decoration */
+  .card-topbar {
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--orange), var(--olive-light), var(--bleu));
+  }
+
+  .login-heading {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--blanc);
+    margin-bottom: 0.25rem;
+  }
+
+  .login-sub {
+    font-size: 0.85rem;
+    color: var(--gris);
+    letter-spacing: 0.05em;
+    margin-bottom: 2rem;
+  }
+
+  /* Field */
+  .field { margin-bottom: 1.25rem; }
+
+  .field label {
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gris);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+
+  .input-wrap {
+    position: relative;
+    display: flex; align-items: center;
+  }
+
+  .input-wrap svg {
+    position: absolute; left: 14px;
+    width: 18px; height: 18px;
+    color: var(--gris);
+    pointer-events: none;
+    flex-shrink: 0;
+    transition: color 0.3s;
+  }
+
+  .field input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    padding: 0.8rem 1rem 0.8rem 2.8rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--blanc);
+    outline: none;
+    transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+    letter-spacing: 0.05em;
+  }
+  .field input::placeholder { color: rgba(100,116,139,0.6); }
+  .field input:focus {
+    border-color: var(--orange);
+    background: rgba(249,115,22,0.05);
+    box-shadow: 0 0 0 3px rgba(249,115,22,0.1), 0 0 20px rgba(249,115,22,0.08);
+  }
+  .field input:focus ~ svg, .input-wrap:focus-within svg {
+    color: var(--orange);
+  }
+
+  /* Eye toggle */
+  .eye-btn {
+    position: absolute; right: 12px;
+    background: none; border: none;
+    cursor: pointer; color: var(--gris);
+    display: flex; align-items: center;
+    transition: color 0.3s;
+    padding: 4px;
+  }
+  .eye-btn:hover { color: var(--orange); }
+  .eye-btn svg { width: 18px; height: 18px; }
+
+  /* Options row */
+  .opts-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.75rem;
+  }
+  .check-label {
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer; font-size: 0.82rem; color: var(--gris);
+    user-select: none;
+  }
+  .check-label input[type=checkbox] { display: none; }
+  .check-box {
+    width: 16px; height: 16px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s;
+    flex-shrink: 0;
+  }
+  .check-label input:checked + .check-box {
+    background: var(--orange); border-color: var(--orange);
+  }
+  .check-label input:checked + .check-box::after {
+    content: '✓'; font-size: 10px; color: #fff; font-weight: 700;
+  }
+  .forgot-link {
+    font-size: 0.8rem; color: var(--bleu);
+    text-decoration: none; letter-spacing: 0.05em;
+    transition: color 0.3s;
+  }
+  .forgot-link:hover { color: var(--olive-light); }
+
+  /* Submit button */
+  .btn-login {
+    width: 100%;
+    padding: 0.9rem;
+    background: linear-gradient(135deg, var(--orange-dark), var(--orange));
+    border: none; border-radius: 6px;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: #fff;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.3s;
+    box-shadow: 0 4px 20px rgba(249,115,22,0.3);
+  }
+  .btn-login::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transform: translateX(-100%);
+    transition: transform 0s;
+  }
+  .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(249,115,22,0.45); }
+  .btn-login:hover::before { transform: translateX(100%); transition: transform 0.6s ease; }
+  .btn-login:active { transform: translateY(0); }
+
+  /* Divider */
+  .or-divider {
+    display: flex; align-items: center; gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  .or-divider::before, .or-divider::after {
+    content: ''; flex: 1; height: 1px;
+    background: rgba(255,255,255,0.08);
+  }
+  .or-divider span {
+    font-size: 0.72rem; color: var(--gris);
+    letter-spacing: 0.15em; text-transform: uppercase;
+  }
+
+  /* Social logins */
+  .social-row { display: flex; gap: 0.75rem; }
+  .btn-social {
+    flex: 1; padding: 0.65rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    color: var(--gris); font-size: 0.78rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600; letter-spacing: 0.1em;
+    cursor: pointer; transition: all 0.3s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .btn-social:hover { border-color: var(--olive); color: var(--olive-light); background: rgba(122,154,60,0.07); }
+  .btn-social svg { width: 16px; height: 16px; }
+
+  /* Signup link */
+  .signup-line {
+    text-align: center; margin-top: 1.25rem;
+    font-size: 0.82rem; color: var(--gris);
+  }
+  .signup-line a { color: var(--bleu); text-decoration: none; }
+  .signup-line a:hover { color: var(--orange); }
+
+  /* ── FOOTER ── */
+  footer {
+    position: relative; z-index: 1;
+    background: rgba(10,12,14,0.95);
+    border-top: 1px solid rgba(249,115,22,0.15);
+    padding: 2rem 3rem;
+  }
+
+  .footer-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1.5rem; flex-wrap: wrap;
+  }
+
+  .footer-brand {
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .footer-logo-hex { width: 36px; height: 36px; flex-shrink: 0; }
+  .footer-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem; font-weight: 900;
+    letter-spacing: 0.25em;
+    background: linear-gradient(135deg, var(--orange), var(--bleu));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .footer-tagline {
+    font-size: 0.7rem; letter-spacing: 0.25em;
+    color: var(--gris); text-transform: uppercase;
+  }
+
+  .footer-nav {
+    display: flex; gap: 2rem; flex-wrap: wrap;
+  }
+  .footer-nav-col { display: flex; flex-direction: column; gap: 0.4rem; }
+  .footer-nav-title {
+    font-size: 0.65rem; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--orange);
+    font-weight: 700; margin-bottom: 0.25rem;
+  }
+  .footer-nav a {
+    font-size: 0.8rem; color: var(--gris);
+    text-decoration: none; letter-spacing: 0.05em;
+    transition: color 0.3s;
+  }
+  .footer-nav a:hover { color: var(--olive-light); }
+
+  .footer-domains {
+    display: flex; gap: 0.5rem; flex-wrap: wrap;
+  }
+  .domain-tag {
+    padding: 3px 10px;
+    border-radius: 3px;
+    font-size: 0.68rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    border: 1px solid;
+  }
+  .dt-gc  { background: rgba(249,115,22,0.08); border-color: rgba(249,115,22,0.3); color: var(--orange); }
+  .dt-mec { background: rgba(122,154,60,0.08);  border-color: rgba(122,154,60,0.3);  color: var(--olive-light); }
+  .dt-it  { background: rgba(14,165,233,0.08);  border-color: rgba(14,165,233,0.3);  color: var(--bleu); }
+  .dt-elec{ background: rgba(249,115,22,0.06); border-color: rgba(249,115,22,0.2); color: rgba(249,115,22,0.8); }
+
+  .footer-bottom {
+    max-width: 1200px; margin: 1.5rem auto 0;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap;
+  }
+  .footer-copy { font-size: 0.72rem; color: rgba(100,116,139,0.6); letter-spacing: 0.1em; }
+  .footer-status {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.72rem; color: var(--olive-light); letter-spacing: 0.1em;
+  }
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--olive-light);
+    box-shadow: 0 0 6px var(--olive-light);
+    animation: statusPulse 2s ease-in-out infinite;
+  }
+  @keyframes statusPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+
+  .noro-error {
+    background: rgba(220,38,38,0.12);
+    border: 1px solid rgba(220,38,38,0.4);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    color: #f87171;
+    margin-bottom: 1rem;
+    letter-spacing: 0.04em;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .main-area { flex-direction: column; gap: 2.5rem; }
+    .divider-vert { width: 80%; height: 1px;
+      background: linear-gradient(to right, transparent, var(--orange) 25%, var(--olive) 75%, transparent); }
+    .footer-inner { flex-direction: column; text-align: center; }
+    .footer-nav { justify-content: center; }
+    .footer-domains { justify-content: center; }
+    .footer-bottom { flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-orbs">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+</div>
+
+<div class="page">
+
+  <!-- ══ MAIN ══ -->
+  <div class="main-area">
+
+    <!-- Logo Column -->
+    <div class="logo-section">
+
+      <div class="logo-ring">
+
+        <!-- Outer ring SVG -->
+        <div class="hex-ring-outer">
+          <svg viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg" width="220" height="220">
+            <polygon points="110,4 206,56 206,164 110,216 14,164 14,56"
+              stroke="rgba(249,115,22,0.25)" stroke-width="1" fill="none" stroke-dasharray="6 4"/>
+          </svg>
+        </div>
+
+        <!-- Mid ring SVG -->
+        <div class="hex-ring-mid">
+          <svg viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg" width="180" height="180">
+            <polygon points="90,4 168,46 168,134 90,176 12,134 12,46"
+              stroke="rgba(14,165,233,0.3)" stroke-width="1" fill="none" stroke-dasharray="3 5"/>
+          </svg>
+        </div>
+
+        <!-- Inner ring SVG -->
+        <div class="hex-ring-inner">
+          <svg viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg" width="140" height="140">
+            <polygon points="70,4 128,36 128,100 70,136 12,100 12,36"
+              stroke="rgba(122,154,60,0.4)" stroke-width="1.5" fill="none"/>
+          </svg>
+        </div>
+
+        <!-- Orbiting satellite hexagons -->
+        <div class="orbit-container">
+          <!-- CPU/Chip -->
+          <div class="sat-hex" style="top:0;left:50%;transform:translate(-50%,-4px)">
+            <svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="21,2 38,11.5 38,30.5 21,40 4,30.5 4,11.5" fill="#1a0f00" stroke="#f97316" stroke-width="1.5"/>
+              <rect x="14" y="14" width="14" height="14" rx="2" fill="none" stroke="#f97316" stroke-width="1.2"/>
+              <rect x="17" y="17" width="8" height="8" rx="1" fill="#f97316" opacity="0.7"/>
+              <line x1="11" y1="17" x2="14" y2="17" stroke="#f97316" stroke-width="1"/><line x1="11" y1="21" x2="14" y2="21" stroke="#f97316" stroke-width="1"/><line x1="11" y1="25" x2="14" y2="25" stroke="#f97316" stroke-width="1"/>
+              <line x1="28" y1="17" x2="31" y2="17" stroke="#f97316" stroke-width="1"/><line x1="28" y1="21" x2="31" y2="21" stroke="#f97316" stroke-width="1"/><line x1="28" y1="25" x2="31" y2="25" stroke="#f97316" stroke-width="1"/>
+            </svg>
+          </div>
+          <!-- Document -->
+          <div class="sat-hex" style="top:25%;right:3%;transform:translate(4px,-50%)">
+            <svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="21,2 38,11.5 38,30.5 21,40 4,30.5 4,11.5" fill="#00101a" stroke="#0ea5e9" stroke-width="1.5"/>
+              <rect x="14" y="11" width="14" height="18" rx="2" fill="none" stroke="#0ea5e9" stroke-width="1.2"/>
+              <line x1="17" y1="16" x2="25" y2="16" stroke="#0ea5e9" stroke-width="1"/><line x1="17" y1="19" x2="25" y2="19" stroke="#0ea5e9" stroke-width="1"/><line x1="17" y1="22" x2="22" y2="22" stroke="#0ea5e9" stroke-width="1"/>
+              <rect x="14" y="11" width="6" height="5" rx="1" fill="#0ea5e9" opacity="0.3"/>
+            </svg>
+          </div>
+          <!-- Network -->
+          <div class="sat-hex" style="bottom:25%;right:3%;transform:translate(4px,50%)">
+            <svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="21,2 38,11.5 38,30.5 21,40 4,30.5 4,11.5" fill="#1a0900" stroke="#f97316" stroke-width="1.5"/>
+              <circle cx="21" cy="21" r="4" fill="none" stroke="#f97316" stroke-width="1.2"/>
+              <circle cx="13" cy="29" r="2.5" fill="none" stroke="#f97316" stroke-width="1"/><circle cx="29" cy="29" r="2.5" fill="none" stroke="#f97316" stroke-width="1"/><circle cx="21" cy="12" r="2.5" fill="none" stroke="#f97316" stroke-width="1"/>
+              <line x1="18" y1="24" x2="15" y2="27" stroke="#f97316" stroke-width="0.8"/><line x1="24" y1="24" x2="27" y2="27" stroke="#f97316" stroke-width="0.8"/><line x1="21" y1="17" x2="21" y2="17" stroke="#f97316" stroke-width="0.8"/>
+            </svg>
+          </div>
+          <!-- Bar Chart -->
+          <div class="sat-hex" style="bottom:0;left:50%;transform:translate(-50%,4px)">
+            <svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="21,2 38,11.5 38,30.5 21,40 4,30.5 4,11.5" fill="#001008" stroke="#7a9a3c" stroke-width="1.5"/>
+              <line x1="12" y1="30" x2="30" y2="30" stroke="#7a9a3c" stroke-width="1"/>
+              <rect x="13" y="23" width="4" height="7" rx="1" fill="#7a9a3c" opacity="0.8"/>
+              <rect x="19" y="19" width="4" height="11" rx="1" fill="#a3c44a"/>
+              <rect x="25" y="15" width="4" height="15" rx="1" fill="#7a9a3c" opacity="0.8"/>
+            </svg>
+          </div>
+          <!-- Target/Crosshair -->
+          <div class="sat-hex" style="bottom:25%;left:3%;transform:translate(-4px,50%)">
+            <svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="21,2 38,11.5 38,30.5 21,40 4,30.5 4,11.5" fill="#00101a" stroke="#0ea5e9" stroke-width="1.5"/>
+              <circle cx="21" cy="21" r="8" fill="none" stroke="#0ea5e9" stroke-width="1.2"/>
+              <circle cx="21" cy="21" r="4" fill="none" stroke="#0ea5e9" stroke-width="1"/>
+              <circle cx="21" cy="21" r="1.5" fill="#0ea5e9"/>
+              <line x1="21" y1="11" x2="21" y2="15" stroke="#0ea5e9" stroke-width="1"/><line x1="21" y1="27" x2="21" y2="31" stroke="#0ea5e9" stroke-width="1"/>
+              <line x1="11" y1="21" x2="15" y2="21" stroke="#0ea5e9" stroke-width="1"/><line x1="27" y1="21" x2="31" y2="21" stroke="#0ea5e9" stroke-width="1"/>
+            </svg>
+          </div>
+          <!-- Scale/Balance -->
+          <div class="sat-hex" style="top:25%;left:3%;transform:translate(-4px,-50%)">
+            <svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="21,2 38,11.5 38,30.5 21,40 4,30.5 4,11.5" fill="#001008" stroke="#7a9a3c" stroke-width="1.5"/>
+              <line x1="21" y1="13" x2="21" y2="29" stroke="#a3c44a" stroke-width="1.2"/>
+              <line x1="12" y1="17" x2="30" y2="17" stroke="#a3c44a" stroke-width="1.2"/>
+              <path d="M12 17 Q10 21 14 22 Q18 23 16 17" fill="none" stroke="#a3c44a" stroke-width="1"/>
+              <path d="M30 17 Q32 21 28 22 Q24 23 26 17" fill="none" stroke="#a3c44a" stroke-width="1"/>
+              <line x1="18" y1="29" x2="24" y2="29" stroke="#a3c44a" stroke-width="1.2"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Central NORO Hex -->
+        <div class="hex-center">
+          <svg viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg">
+            <!-- Outer black hex -->
+            <polygon points="50,4 94,27 94,88 50,111 6,88 6,27" fill="#0a0c0e" stroke="white" stroke-width="4"/>
+            <!-- Inner blue hex -->
+            <polygon points="50,14 84,32 84,83 50,101 16,83 16,32" fill="#0ea5e9" stroke="#38bdf8" stroke-width="1"/>
+            <!-- Dots ring -->
+            <circle cx="50" cy="20" r="4" fill="rgba(14,165,233,0.5)"/>
+            <circle cx="78" cy="36" r="4" fill="rgba(14,165,233,0.5)"/>
+            <circle cx="78" cy="79" r="4" fill="rgba(14,165,233,0.5)"/>
+            <circle cx="50" cy="95" r="4" fill="rgba(14,165,233,0.5)"/>
+            <circle cx="22" cy="79" r="4" fill="rgba(14,165,233,0.5)"/>
+            <circle cx="22" cy="36" r="4" fill="rgba(14,165,233,0.5)"/>
+            <!-- Center circle -->
+            <circle cx="50" cy="57" r="14" fill="#0a0c0e"/>
+            <circle cx="50" cy="57" r="8" fill="#0ea5e9"/>
+            <circle cx="50" cy="57" r="4" fill="white"/>
+          </svg>
+        </div>
+
+      </div><!-- /.logo-ring -->
+
+      <div class="brand-name">NORO</div>
+      <div class="brand-sep"></div>
+      <div class="brand-tagline">Administration Digitale IA</div>
+
+      <div class="badge-row">
+        <span class="badge badge-orange"><span class="badge-dot"></span>Génie Civil</span>
+        <span class="badge badge-olive"><span class="badge-dot"></span>Mécanique</span>
+        <span class="badge badge-blue"><span class="badge-dot"></span>Informatique</span>
+        <span class="badge badge-orange"><span class="badge-dot"></span>Électronique</span>
+      </div>
+
+    </div><!-- /.logo-section -->
+
+    <!-- Vertical Divider -->
+    <div class="divider-vert"></div>
+
+    <!-- Login Card -->
+    <div class="login-card">
+      <div class="card-topbar"></div>
+
+      {% if error %}<div class="noro-error">{{ error }}</div>{% endif %}
+      <div class="login-heading">CONNEXION</div>
+      <div class="login-sub">Accès sécurisé — Plateforme NORO</div>
+
+      <form method="POST" action="/login">
+      <div class="field">
+        <label>Identifiant</label>
+        <div class="input-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+          <input type="text" name="email" placeholder="votre.identifiant@noro.dz" autocomplete="username">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Mot de passe</label>
+        <div class="input-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <input type="password" id="pwd" name="password" placeholder="••••••••••••" autocomplete="current-password">
+          <button class="eye-btn" onclick="togglePwd()" type="button" aria-label="Voir mot de passe">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="eye-icon">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="opts-row">
+        <label class="check-label">
+          <input type="checkbox" name="remember" value="1">
+          <span class="check-box"></span>
+          Rester connecté
+        </label>
+        <a href="#" class="forgot-link">Mot de passe oublié ?</a>
+      </div>
+
+      <button class="btn-login" type="submit">ACCÉDER AU SYSTÈME</button>
+      </form>
+
+      <div class="or-divider"><span>ou continuer avec</span></div>
+
+      <div class="social-row">
+        <button class="btn-social">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          Google
+        </button>
+        <button class="btn-social">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 8h-2a4 4 0 0 0-4 4v2"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="8" y1="12" x2="12" y2="12"/></svg>
+          SSO Entreprise
+        </button>
+      </div>
+
+      <div class="signup-line">
+        Pas encore de compte ? <a href="#">Créer un accès NORO</a>
+      </div>
+    </div>
+
+  </div><!-- /.main-area -->
+
+  <!-- ══ FOOTER ══ -->
+  <footer>
+    <div class="footer-inner">
+
+      <div class="footer-brand">
+        <svg class="footer-logo-hex" viewBox="0 0 36 42" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="18,1 33,9.5 33,32.5 18,41 3,32.5 3,9.5" fill="#0a0c0e" stroke="#f97316" stroke-width="1.5"/>
+          <polygon points="18,7 27,12 27,30 18,35 9,30 9,12" fill="#0ea5e9" stroke="#38bdf8" stroke-width="0.5"/>
+          <circle cx="18" cy="21" r="6" fill="#0a0c0e"/>
+          <circle cx="18" cy="21" r="3.5" fill="#0ea5e9"/>
+          <circle cx="18" cy="21" r="1.5" fill="white"/>
+        </svg>
+        <div>
+          <div class="footer-name">NORO</div>
+          <div class="footer-tagline">Administration Digitale IA</div>
+        </div>
+      </div>
+
+      <div class="footer-nav">
+        <div class="footer-nav-col">
+          <div class="footer-nav-title">Services</div>
+          <a href="#">Permis en ligne</a>
+          <a href="#">Badges pro</a>
+          <a href="#">Attestations</a>
+          <a href="#">Rapports IA</a>
+        </div>
+        <div class="footer-nav-col">
+          <div class="footer-nav-title">Secteurs</div>
+          <a href="#">Génie Civil</a>
+          <a href="#">Mécanique</a>
+          <a href="#">Informatique</a>
+          <a href="#">Électronique</a>
+        </div>
+        <div class="footer-nav-col">
+          <div class="footer-nav-title">Plateforme</div>
+          <a href="#">Documentation</a>
+          <a href="#">API NORO</a>
+          <a href="#">Tableau de bord</a>
+          <a href="#">Support</a>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:.75rem;align-items:flex-end">
+        <div class="footer-domains">
+          <span class="domain-tag dt-gc">GC</span>
+          <span class="domain-tag dt-mec">MEC</span>
+          <span class="domain-tag dt-it">IT</span>
+          <span class="domain-tag dt-elec">ELEC</span>
+        </div>
+        <div style="font-size:0.72rem;color:var(--gris);letter-spacing:.08em;text-align:right">
+          Certifications · Permis · Badges Officiels
+        </div>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 NORO — Administration Digitale IA. Tous droits réservés. Algeria, DZ</div>
+      <div class="footer-status">
+        <div class="status-dot"></div>
+        Système opérationnel — Sécurisé SSL 256-bit
+      </div>
+    </div>
+  </footer>
+
+</div><!-- /.page -->
+
+<script>
+  function togglePwd() {
+    const p = document.getElementById('pwd');
+    const icon = document.getElementById('eye-icon');
+    if (p.type === 'password') {
+      p.type = 'text';
+      icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+    } else {
+      p.type = 'password';
+      icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    }
+  }
+
+  function handleLogin() {
+    const btn = document.querySelector('.btn-login');
+    btn.textContent = 'AUTHENTIFICATION...';
+    btn.style.background = 'linear-gradient(135deg,#0369a1,#0ea5e9)';
+    setTimeout(() => {
+      btn.textContent = '✓ ACCÈS AUTORISÉ';
+      btn.style.background = 'linear-gradient(135deg,#3b6d11,#7a9a3c)';
+      setTimeout(() => {
+        btn.textContent = 'ACCÉDER AU SYSTÈME';
+        btn.style.background = '';
+      }, 2000);
+    }, 1500);
+  }
+</script>
+</body>
+</html>

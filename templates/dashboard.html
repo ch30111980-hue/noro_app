@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NORO — Tableau de Bord</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --noir: #0a0c0e; --orange: #f97316; --olive: #7a9a3c;
+    --olive-light: #a3c44a; --bleu: #0ea5e9; --blanc: #f1f5f9; --gris: #64748b;
+  }
+  body { background: var(--noir); font-family: 'Rajdhani', sans-serif; color: var(--blanc); min-height: 100vh; }
+
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 2rem;
+    background: rgba(17,20,24,0.95);
+    border-bottom: 1px solid rgba(249,115,22,0.2);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-brand {
+    font-family: 'Orbitron', monospace; font-size: 1.4rem; font-weight: 900;
+    letter-spacing: 0.25em;
+    background: linear-gradient(135deg, var(--orange), var(--bleu));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .nav-right { display: flex; align-items: center; gap: 1.5rem; }
+  .nav-user { font-size: 0.85rem; color: var(--gris); }
+  .nav-user span { color: var(--orange); font-weight: 600; }
+  .btn-logout {
+    padding: 6px 16px; border-radius: 4px;
+    background: rgba(249,115,22,0.1); border: 1px solid rgba(249,115,22,0.3);
+    color: var(--orange); font-family: 'Rajdhani', sans-serif;
+    font-size: 0.8rem; font-weight: 600; letter-spacing: 0.1em;
+    cursor: pointer; text-decoration: none;
+    transition: all 0.3s;
+  }
+  .btn-logout:hover { background: rgba(249,115,22,0.2); }
+
+  .hero {
+    padding: 3rem 2rem; text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .hero h1 {
+    font-family: 'Orbitron', monospace; font-size: 2rem;
+    font-weight: 900; letter-spacing: 0.2em;
+    background: linear-gradient(135deg, var(--orange), var(--blanc), var(--bleu));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    margin-bottom: 0.5rem;
+  }
+  .hero p { color: var(--gris); font-size: 1rem; letter-spacing: 0.1em; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem; padding: 2rem;
+    max-width: 1100px; margin: 0 auto;
+  }
+  .card {
+    background: rgba(17,20,24,0.8);
+    border-radius: 10px; padding: 1.5rem;
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: border-color 0.3s, transform 0.3s;
+    cursor: pointer;
+  }
+  .card:hover { border-color: var(--orange); transform: translateY(-3px); }
+  .card-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+  .card-title {
+    font-family: 'Orbitron', monospace; font-size: 0.75rem;
+    letter-spacing: 0.2em; color: var(--orange); margin-bottom: 0.5rem;
+  }
+  .card-desc { font-size: 0.85rem; color: var(--gris); line-height: 1.5; }
+  .card-count {
+    margin-top: 1rem; font-size: 1.6rem; font-weight: 700;
+    color: var(--blanc);
+  }
+  .card-count small { font-size: 0.7rem; color: var(--gris); font-weight: 400; letter-spacing: 0.1em; }
+
+  .tag-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
+  .tag {
+    font-size: 0.65rem; letter-spacing: 0.1em; padding: 3px 8px;
+    border-radius: 3px; font-weight: 700; text-transform: uppercase; border: 1px solid;
+  }
+  .t-orange { background: rgba(249,115,22,0.1); border-color: rgba(249,115,22,0.4); color: var(--orange); }
+  .t-olive  { background: rgba(122,154,60,0.1);  border-color: rgba(122,154,60,0.4);  color: var(--olive-light); }
+  .t-blue   { background: rgba(14,165,233,0.1);  border-color: rgba(14,165,233,0.4);  color: var(--bleu); }
+
+  /* Grande carte cliquable */
+  .card-main {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, rgba(249,115,22,0.18), rgba(14,165,233,0.12));
+    border: 1px solid rgba(249,115,22,0.4);
+    border-radius: 12px;
+    padding: 2.2rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(249,115,22,0.1);
+  }
+  .card-main:hover {
+    border-color: var(--orange);
+    box-shadow: 0 8px 30px rgba(249,115,22,0.25);
+    transform: translateY(-3px);
+  }
+  .card-main .card-icon {
+    font-size: 3.5rem;
+    margin-bottom: 0;
+  }
+  .card-main-body {
+    flex: 1;
+  }
+  .card-main-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--orange);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.4rem;
+  }
+  .card-main-desc {
+    font-size: 0.95rem;
+    color: var(--blanc);
+    margin-bottom: 0.8rem;
+    letter-spacing: 0.05em;
+    line-height: 1.4;
+  }
+  .card-main-action {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--bleu);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-main:hover .card-main-action {
+    color: #fff;
+    text-shadow: 0 0 10px var(--bleu);
+  }
+
+  /* Cartes d'information statiques */
+  .card-info {
+    cursor: default;
+  }
+  .card-info:hover {
+    border-color: rgba(255,255,255,0.08);
+    transform: none;
+  }
+
+  footer {
+    text-align: center; padding: 1.5rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.72rem; color: var(--gris); letter-spacing: 0.1em;
+    margin-top: 2rem;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">NORO</div>
+  <div class="nav-right">
+    <div class="nav-user">Connecté : <span>{{ nom }}</span> ({{ role }})</div>
+    <a href="/logout" class="btn-logout">DÉCONNEXION</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>BIENVENUE, {{ nom.split()[0].upper() }}</h1>
+  <p>Administration Digitale IA — Tableau de bord NORO</p>
+</div>
+
+<div class="grid">
+  <!-- Grande carte cliquable -->
+  <a href="{{ noro_unified_url }}" class="card-main">
+    <div class="card-icon">🚀</div>
+    <div class="card-main-body">
+      <div class="card-main-title">ACCÉDER À NORO UNIFIED (APPLICATION PRINCIPALE)</div>
+      <div class="card-main-desc">Cliquez ici pour ouvrir l'application complète, gérer vos badges, vos permis et consulter toutes vos données opérationnelles réelles.</div>
+      <div class="card-main-action">Ouvrir l'application complète ➜</div>
+    </div>
+  </a>
+
+  <!-- Boîtes d'information statiques -->
+  <div class="card card-info">
+    <div class="card-icon">📋</div>
+    <div class="card-title">PERMIS EN LIGNE</div>
+    <div class="card-desc">Génération et gestion des permis officiels pour tous les secteurs</div>
+    <div class="card-count">0 <small>PERMIS ACTIFS</small></div>
+    <div class="tag-row"><span class="tag t-orange">GC</span><span class="tag t-olive">MEC</span><span class="tag t-blue">IT</span></div>
+  </div>
+
+  <div class="card card-info">
+    <div class="card-icon">🏅</div>
+    <div class="card-title">BADGES PROFESSIONNELS</div>
+    <div class="card-desc">Création de badges certifiés pour les professionnels du terrain</div>
+    <div class="card-count">0 <small>BADGES ÉMIS</small></div>
+    <div class="tag-row"><span class="tag t-orange">Certifié</span><span class="tag t-olive">Vérifié</span></div>
+  </div>
+
+  <div class="card card-info">
+    <div class="card-icon">🏗️</div>
+    <div class="card-title">GÉNIE CIVIL</div>
+    <div class="card-desc">Dossiers, plans, attestations et conformités pour chantiers</div>
+    <div class="card-count">0 <small>DOSSIERS</small></div>
+    <div class="tag-row"><span class="tag t-orange">Béton</span><span class="tag t-orange">Structure</span></div>
+  </div>
+
+  <div class="card card-info">
+    <div class="card-icon">⚙️</div>
+    <div class="card-title">MÉCANIQUE</div>
+    <div class="card-desc">Rapports de maintenance et certificats d'équipements</div>
+    <div class="card-count">0 <small>RAPPORTS</small></div>
+    <div class="tag-row"><span class="tag t-olive">Maintenance</span></div>
+  </div>
+
+  <div class="card card-info">
+    <div class="card-icon">💻</div>
+    <div class="card-title">INFORMATIQUE</div>
+    <div class="card-desc">Certifications logicielles, audits systèmes et réseaux</div>
+    <div class="card-count">0 <small>CERTIFICATIONS</small></div>
+    <div class="tag-row"><span class="tag t-blue">Réseau</span><span class="tag t-blue">Sécurité</span></div>
+  </div>
+
+  <div class="card card-info">
+    <div class="card-icon">⚡</div>
+    <div class="card-title">ÉLECTRONIQUE</div>
+    <div class="card-desc">Habilitations électriques et vérifications d'installations</div>
+    <div class="card-count">0 <small>HABILITATIONS</small></div>
+    <div class="tag-row"><span class="tag t-orange">BT</span><span class="tag t-orange">HT</span></div>
+  </div>
+</div>
+
+<footer>
+  © 2026 NORO — Administration Digitale IA · Algeria, DZ · Compte : {{ email }}
+</footer>
+
+</body>
+</html>
