@@ -5,5 +5,12 @@
     "role": "admin",
     "secteur": "Tous",
     "created": "2026-05-23T20:01:42.525107"
+  },
+  "global-cold@noro.dz": {
+    "password": "1420615c7de36a8114536a309abbb1ccefcdfae022d81b86847f73d2438afd7e",
+    "nom": "Global Cold",
+    "role": "user",
+    "secteur": "Tous",
+    "created": "2026-05-25T14:33:00.000000"
   }
 }
